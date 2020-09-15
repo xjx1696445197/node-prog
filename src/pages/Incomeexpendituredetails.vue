@@ -1,25 +1,26 @@
+<script src="../../../newtest-prog/send-token-chmc.js"></script>
 <template>
     <div class="page">
         <div class="HEADER_WALLET">
             <div class="HEADER_BACK" @click="this.$back"></div>
-            <p class="HEADER_TITLE_WALLET">HALE收支明细</p>
+            <p class="HEADER_TITLE_WALLET">{{this.currency}}收支明细</p>
         </div>
-        <div class="wrapper">
+        <div class="wrapper" v-if="this.currency=='HALE'">
             <div class="Mybalance">
-                <div>{{balance.toFixed(7).slice(0, -1)}}</div>
+                <div>{{balance|tofixed6}}</div>
                 <div>≈￥ {{Rmbbalance|tofixed4}}</div>
             </div>
-<!--            <div class="tab">-->
-<!--                <div @click="msgs(1)" :class="msg==1? 'ativetab' : ''">全部</div>-->
-<!--                <div @click="msgs(2)" :class="msg==2? 'ativetab' : ''">收款</div>-->
-<!--                <div @click="msgs(3)" :class="msg==3? 'ativetab' : ''">付款</div>-->
-<!--            </div>-->
+            <!--            <div class="tab">-->
+            <!--                <div @click="msgs(1)" :class="msg==1? 'ativetab' : ''">全部</div>-->
+            <!--                <div @click="msgs(2)" :class="msg==2? 'ativetab' : ''">收款</div>-->
+            <!--                <div @click="msgs(3)" :class="msg==3? 'ativetab' : ''">付款</div>-->
+            <!--            </div>-->
             <div class="he"></div>
             <div class="main" v-infinite-scroll="loadMore" infinite-scroll-disabled="loading"
                  infinite-scroll-distance="10">
                 <!--                全部-->
                 <div v-if="msg==1">
-                    <div v-for="(item,index) in list" @click="godetail(item)">
+                    <div v-for="(item,index) in list" @click="godetail(item)" v-if="item.contract_symbol!=='CHMC'">
                         <div>
                             <img src="../static/images/newWallet/icon_HALE11.png">
                             <div>
@@ -35,10 +36,14 @@
                         </div>
                         <div>
                             <div>
-                                <p v-if="myaddress!==item.from_address&&item.messages[0].type=='cosmos-sdk/MsgSend'" class="gree">+ {{(item.messages[0].value.amount[0].amount/1000000).toFixed(7).slice(0, -1)||0}} HALE</p>
-                                <p v-if="myaddress!==item.from_address&&item.messages[0].type=='ethermint/MsgEthermint'" class="gree">+ {{(item.messages[0].value.value/1000000).toFixed(7).slice(0, -1)||0}} HALE</p>
+                                <p v-if="myaddress!==item.from_address&&item.messages[0].type=='cosmos-sdk/MsgSend'"
+                                   class="gree">+ {{(item.messages[0].value.amount[0].amount/1000000)||0|tofixed6}}
+                                    HALE</p>
+                                <p v-if="myaddress!==item.from_address&&item.messages[0].type=='ethermint/MsgEthermint'"
+                                   class="gree">+ {{(item.messages[0].value.value/1000000)||0|tofixed6}} HALE</p>
 
-                                <p v-if="myaddress==item.from_address&&item.messages[0].type=='ethermint/MsgEthermint'" class="red">- {{(item.messages[0].value.value/1000000)  .toFixed(7).slice(0, -1)||0}} HALE</p>
+                                <p v-if="myaddress==item.from_address&&item.messages[0].type=='ethermint/MsgEthermint'"
+                                   class="red">- {{(item.messages[0].value.value/1000000)||0 |tofixed6}} HALE</p>
                                 <p v-if="item.code!==0" class="red">未完成</p>
                                 <p v-if="item.code==0">已完成</p>
                             </div>
@@ -66,8 +71,10 @@
                         </div>
                         <div>
                             <div>
-                                <p v-if="myaddress!==item.from_address&&item.messages[0].type=='cosmos-sdk/MsgSend'" class="gree">+ {{item.messages[0].value.amount[0].amount/1000000||0}} HALE</p>
-                                <p v-if="myaddress!==item.from_address&&item.messages[0].type=='ethermint/MsgEthermint'" class="gree">+ {{item.messages[0].value.value/1000000||0}} HALE</p>
+                                <p v-if="myaddress!==item.from_address&&item.messages[0].type=='cosmos-sdk/MsgSend'"
+                                   class="gree">+ {{item.messages[0].value.amount[0].amount/1000000||0}} HALE</p>
+                                <p v-if="myaddress!==item.from_address&&item.messages[0].type=='ethermint/MsgEthermint'"
+                                   class="gree">+ {{item.messages[0].value.value/1000000||0}} HALE</p>
 
                                 <p>已完成</p>
                             </div>
@@ -96,7 +103,118 @@
                             <div>
                                 <p v-if="myaddress!==item.from_address" class="gree">+
                                     {{item.messages[0].value.value||0}} HALE</p>
-                                <p v-if="myaddress==item.from_address&&item.messages[0].type=='ethermint/MsgEthermint'" class="red">- {{item.messages[0].value.value/1000000||0}} HALE</p>
+                                <p v-if="myaddress==item.from_address&&item.messages[0].type=='ethermint/MsgEthermint'"
+                                   class="red">- {{item.messages[0].value.value/1000000||0}} HALE</p>
+                                <p>已完成</p>
+                            </div>
+                            <img src="../static/images/newWallet/icon_go.png">
+                        </div>
+                    </div>
+                    <p>加载完成！</p>
+
+                </div>
+            </div>
+        </div>
+        <div class="wrapper" v-if="this.currency=='CHMC'">
+            <div class="Mybalance">
+                <div>{{Tokenbalance|tofixed6}}</div>
+                <div>≈￥ {{RmbTokenbalance|tofixed4}}</div>
+            </div>
+            <!--            <div class="tab">-->
+            <!--                <div @click="msgs(1)" :class="msg==1? 'ativetab' : ''">全部</div>-->
+            <!--                <div @click="msgs(2)" :class="msg==2? 'ativetab' : ''">收款</div>-->
+            <!--                <div @click="msgs(3)" :class="msg==3? 'ativetab' : ''">付款</div>-->
+            <!--            </div>-->
+            <div class="he"></div>
+            <div class="main" v-infinite-scroll="loadMore" infinite-scroll-disabled="loading"
+                 infinite-scroll-distance="10">
+                <!--                全部-->
+                <div v-if="msg==1">
+                    <div v-for="(item,index) in list" @click="godetail(item)">
+                        <div>
+                            <img src="../static/images/chmclogo.png">
+                            <div>
+                                <p>
+                                    <span class="red" v-if="myaddress==item.from_address">付款</span>
+                                    <span class="gree" v-if="myaddress!==item.from_address">收款</span>
+                                    <span v-if="myaddress==item.from_address">{{item.to_address|addressFormat}}</span>
+                                    <span v-if="myaddress!==item.from_address">{{item.from_address|addressFormat}}</span>
+
+                                </p>
+                                <p style="white-space:nowrap">{{item.timestamp.substring(0,19).replace("T"," ")}}</p>
+                            </div>
+                        </div>
+                        <div>
+                            <div>
+                                <p v-if="myaddress!==item.from_address&&item.messages[0].type=='cosmos-sdk/MsgSend'"
+                                   class="gree">+ {{(item.messages[0].value.amount[0].amount)/1000000000000000000||0|tofixed6}}
+                                    CHMC</p>
+                                <p v-if="myaddress!==item.from_address&&item.messages[0].type=='ethermint/MsgEthermint'"
+                                   class="gree">+ {{(item.messages[0].value.value)/1000000000000000000||0|tofixed6}} CHMC</p>
+
+                                <p v-if="myaddress==item.from_address&&item.messages[0].type=='ethermint/MsgEthermint'"
+                                   class="red">- {{(item.messages[0].value.value)/1000000000000000000||0 |tofixed6}} CHMC</p>
+                                <p v-if="item.code!==0" class="red">未完成</p>
+                                <p v-if="item.code==0">已完成</p>
+                            </div>
+                            <img src="../static/images/newWallet/icon_go.png">
+                        </div>
+                    </div>
+                    <p>加载完成！</p>
+
+                </div>
+                <!--                收款-->
+                <div v-if="msg==2">
+                    <div v-for="(item,index) in list" @click="godetail(item)" v-if="myaddress!==item.from_address">
+                        <div>
+                            <img src="../static/images/newWallet/icon_HALE11.png">
+                            <div>
+                                <p>
+                                    <span class="red" v-if="myaddress==item.from_address">付款</span>
+                                    <span class="gree" v-if="myaddress!==item.from_address">收款</span>
+                                    <span v-if="myaddress==item.from_address">{{item.to_address|addressFormat}}</span>
+                                    <span v-if="myaddress!==item.from_address">{{item.from_address|addressFormat}}</span>
+
+                                </p>
+                                <p style="white-space:nowrap">{{item.timestamp.substring(0,19)}}</p>
+                            </div>
+                        </div>
+                        <div>
+                            <div>
+                                <p v-if="myaddress!==item.from_address&&item.messages[0].type=='cosmos-sdk/MsgSend'"
+                                   class="gree">+ {{item.messages[0].value.amount[0].amount/1000000||0}} HALE</p>
+                                <p v-if="myaddress!==item.from_address&&item.messages[0].type=='ethermint/MsgEthermint'"
+                                   class="gree">+ {{item.messages[0].value.value/1000000||0}} HALE</p>
+
+                                <p>已完成</p>
+                            </div>
+                            <img src="../static/images/newWallet/icon_go.png">
+                        </div>
+                    </div>
+                    <p>加载完成！</p>
+                </div>
+                <!--                付款-->
+                <div v-if="msg==3">
+                    <div v-for="(item,index) in list" @click="godetail(item)" v-if="myaddress==item.from_address">
+                        <div>
+                            <img src="../static/images/newWallet/icon_HALE11.png">
+                            <div>
+                                <p>
+                                    <span class="red" v-if="myaddress==item.from_address">付款</span>
+                                    <span class="gree" v-if="myaddress!==item.from_address">收款</span>
+                                    <span v-if="myaddress==item.from_address">{{item.to_address|addressFormat}}</span>
+                                    <span v-if="myaddress!==item.from_address">{{item.from_address|addressFormat}}</span>
+
+                                </p>
+                                <p style="white-space:nowrap">{{item.timestamp.substring(0,19)}}</p>
+                            </div>
+                        </div>
+                        <div>
+                            <div>
+                                <p v-if="myaddress!==item.from_address" class="gree">+
+                                    {{item.messages[0].value.value||0}} HALE</p>
+                                <p v-if="myaddress==item.from_address&&item.messages[0].type=='ethermint/MsgEthermint'"
+                                   class="red">- {{item.messages[0].value.value/1000000||0}} HALE</p>
                                 <p>已完成</p>
                             </div>
                             <img src="../static/images/newWallet/icon_go.png">
@@ -136,6 +254,8 @@
     import axios from 'axios'
     import urlUtil from '../util/apiUtil.js'
     import {InfiniteScroll} from 'mint-ui'
+    import txu from '@/util/txUtil'
+
     Vue.use(InfiniteScroll)
 
     export default {
@@ -149,54 +269,101 @@
                 Rmbbalance: 0,
                 list: "",
                 myaddress: "",
-                pages:10,
-                pagestore:true,
-                after:0
+                pages: 10,
+                pagestore: true,
+                after: 0,
+                currency:this.$route.query.currency,
+                Tokenbalance:"",
+                RmbTokenbalance:""
             }
         },
         created() {
             var that = this;
             // this.getdata()
-            this.web3 = new Web3(Web3.givenProvider ||urlUtil.getApiUrl("api_rootbalance"));
+            this.web3 = new Web3(Web3.givenProvider || urlUtil.getApiUrl("api_rootbalance"));
+            txu.balanceOf(that.web3,localStorage.getItem("assetaddress")).then((res) => {
+                that.Tokenbalance=res/1000000000000000000
+            })
             this.getBalance(localStorage.getItem("assetaddress"))
-            this.$http.get('http://120.77.247.234:8983/js/hCurrencyRate/findCurrencyParameter', {
+            this.$http.get('http://120.77.247.234:8984/js/hCurrencyRate/findCurrencyParameter', {
                 currency: "haleusdt"
             }).then((res) => {
                 that.Rmbbalance = that.balance * res.result.usdtCny * res.result.haleUsdt.firstPrice
+                that.RmbTokenbalance = that.Tokenbalance * res.result.usdtCny * res.result.chmcUsdt.firstPrice
             })
 
         },
         methods: {
             //列表
-            getdata(){
+            getdata() {
                 var that = this;
-                Ethtohelle(localStorage.getItem("assetaddress")).then((res) => {
-                    that.myaddress = res;
-                    axios.get(urlUtil.getApiUrl("api_rootlist")+"/v1/txs_address", {
-                        params: {
-                            limit: 30,
-                            after:that.after,
-                            address: that.myaddress
-                        }
-                    },).then((res) => {
-                    //     console.log(res.data.data[4])
-                    //     var bchearr=[];
-                    // for (var i = 0; i <=res.data.data.length;i++) {
-                    //         bchearr.push(res.data.data.pop());
-                    //     }
-                    //     that.after=bchearr[0].id
-                    //     if(that.pages>res.data.data.length){
-                    //         that.pagestore=false
-                    //         that.list = bchearr
-                    //     }else{
-                    //         that.list = bchearr
-                    //     }
-                       
-                 
-                    //     console.log(that.list)
-                    that.list=res.data.data.reverse()
+                if(this.currency=='HALE'){
+                    Ethtohelle(localStorage.getItem("assetaddress")).then((res) => {
+                        that.myaddress = res;
+                        axios.get(urlUtil.getApiUrl("api_rootlist") + "/v1/txs_address", {
+                            params: {
+                                limit: 30,
+                                after: that.after,
+                                address: that.myaddress
+                            }
+                        },).then((res) => {
+                            //     console.log(res.data.data[4])
+                            //     var bchearr=[];
+                            // for (var i = 0; i <=res.data.data.length;i++) {
+                            //         bchearr.push(res.data.data.pop());
+                            //     }
+                            //     that.after=bchearr[0].id
+                            //     if(that.pages>res.data.data.length){
+                            //         that.pagestore=false
+                            //         that.list = bchearr
+                            //     }else{
+                            //         that.list = bchearr
+                            //     }
+
+
+                            //     console.log(that.list)
+                            if (res.data.data !== null) {
+                                that.list = res.data.data.reverse()
+                            } else {
+
+                            }
+                        })
                     })
-                })
+                }else{
+                    Ethtohelle(localStorage.getItem("assetaddress")).then((res) => {
+                        that.myaddress = res;
+                        axios.get(urlUtil.getApiUrl("api_rootlist") +"/v1/txs_address", {
+                            params: {
+                                limit: 30,
+                                after: that.after,
+                                address: that.myaddress,
+                                contract_address:"halle1naxyyz7eqh53jgxalfqzj39eggdn02n8n604v3"
+                            }
+                        },).then((res) => {
+                            //     console.log(res.data.data[4])
+                            //     var bchearr=[];
+                            // for (var i = 0; i <=res.data.data.length;i++) {
+                            //         bchearr.push(res.data.data.pop());
+                            //     }
+                            //     that.after=bchearr[0].id
+                            //     if(that.pages>res.data.data.length){
+                            //         that.pagestore=false
+                            //         that.list = bchearr
+                            //     }else{
+                            //         that.list = bchearr
+                            //     }
+
+
+                            //     console.log(that.list)
+                            if (res.data.data !== null) {
+                                that.list = res.data.data.reverse()
+                            } else {
+
+                            }
+                        })
+                    })
+                }
+
             },
             //余额
             getBalance(fromAddress) {
@@ -204,7 +371,7 @@
                 const _from = fromAddress;
                 const web3 = this.web3
                 web3.eth.getBalance(_from, function (err, value) {
-                    that.balance = value/1000000
+                    that.balance = value / 1000000
                     // console.log('-------getBalance-------err--------' + err)
                     // console.log('-------getBalance--------value-------' + value)
                     if (err) {
@@ -220,14 +387,14 @@
             msgs(i) {
                 this.msg = i;
                 this.getdata()
-                this.pages=10
-                this.pagestore=true
+                this.pages = 10
+                this.pagestore = true
             },
             //上拉加载
             loadMore: function () {
                 console.log(this.pagestore)
-                if(this.pagestore){
-                    this.pages+=10
+                if (this.pagestore) {
+                    this.pages += 10
                     this.getdata()
                 }
 
@@ -242,14 +409,18 @@
             },
             payment() {
                 this.$push({
-                    path: '/currencyTransfer'
+                    path: '/currencyTransfer',
+                    query: {
+                        currency: this.currency
+                    }
                 })
             },
             godetail(i) {
                 this.$push({
                     path: '/currencyDealDetail',
                     query: {
-                        i
+                        i,
+                        currency: this.currency
                     }
                 })
             }

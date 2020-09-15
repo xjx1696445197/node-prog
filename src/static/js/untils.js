@@ -41,7 +41,7 @@ const tofixed4 = (value) => {
     return nValue.toFixed(5).slice(0, -1)
 }
 // 取后6位小数
-const fixeds6 = (value) => {
+const tofixed6 = (value) => {
     var nValue = Number(value)
     if( isNaN(nValue) ){
         return value
@@ -62,5 +62,5 @@ export {
     dataFormat,
     tofixed4,
     addressFormat,
-    fixeds6
+    tofixed6
 }

@@ -19,10 +19,11 @@ import validate from 'plugins/validate/plugin'
 Vue.use(plugins)
 Vue.use(validate)
 
-import { dataFormat, tofixed4,fixeds6, addressFormat } from 'static/js/untils'
+import { dataFormat, tofixed4,tofixed6, addressFormat } from 'static/js/untils'
 
 Vue.filter('dataFormat', dataFormat)
-Vue.filter('tofixed4', tofixed4,fixeds6)
+Vue.filter('tofixed4', tofixed4)
+Vue.filter('tofixed6', tofixed6)
 Vue.filter('addressFormat', addressFormat)
 
 // validate fix

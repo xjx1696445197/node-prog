@@ -27,7 +27,7 @@ const baseURL = PROJECT_ENV === 'production' ? prodRequestUrl : devRequestUrl
 
 const sourceUrl = PROJECT_ENV === 'production' ? prodSourceUrl : devSourceUrl
 const sourceUrlShop = PROJECT_ENV === 'production' ? sourceUrlShop1 : sourceUrlShop2
-const version = '1.0.0'
+const version = '1.0.5'
 const code = 30
 
 export {

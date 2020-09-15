@@ -34,7 +34,7 @@
                         <div class="inputBox_view">
                             <div class="inputBox_view_top">
                                 <div class="inputBox_l">
-                                    <p class="inputBox_usable inputBox_txt1">可以余额：{{balance.toFixed(7).slice(0, -1)}} HALE</p>
+                                    <p class="inputBox_usable inputBox_txt1">可以余额：{{balance|tofixed6}} {{currency}}</p>
                                 </div>
                                 <div class="inputBox_r">
                                     <p class="inputBox_txt2" @click="allTransfer">全部付款</p>
@@ -64,12 +64,12 @@
                                 </div>
 
                             </div> -->
-                            <!--                            <div class="inputBox_view_sub">-->
-                            <!--                                <p class="inputBox_txt3">{{$t('currencyDetail.currencyDetail_fee')}} {{detail.fee}} {{currencyName}}</p>-->
-                            <!--                            </div>-->
-                        <!-- </div>
-                    </div>
-                </div> -->
+                <!--                            <div class="inputBox_view_sub">-->
+                <!--                                <p class="inputBox_txt3">{{$t('currencyDetail.currencyDetail_fee')}} {{detail.fee}} {{currencyName}}</p>-->
+                <!--                            </div>-->
+                <!-- </div>
+            </div>
+        </div> -->
 
                 <div class="inputBox" v-if="!checkedStatus">
                     <div class="inputBox_sub">
@@ -96,7 +96,8 @@
                 </div>
                 <div class="inputBox">
                     <div class="inputBox_top">
-                        <p class="inputBox_label">手续费 ({{demo.demo8.value[0]*this.gaslimit*6/1000000|| demo.demo8.value*this.gaslimit*6/1000000|tofixed4}} HALE)</p></div>
+                        <p class="inputBox_label">手续费 ({{demo.demo8.value[0]*this.gaslimit*6/1000000||
+                            demo.demo8.value*this.gaslimit*6/1000000|tofixed4}} HALE)</p></div>
                 </div>
                 <div class="inputBox_sub">
                     <input
@@ -137,9 +138,9 @@
                         </div>
                         <div class="inputBox_view">
                             <div class="inputBox_view_top">
-<!--                                <div class="inputBox_l">-->
-<!--                                    <p class="inputBox_usable inputBox_txt1">最低Gas {{gaslimit*6}}</p>-->
-<!--                                </div>-->
+                                <!--                                <div class="inputBox_l">-->
+                                <!--                                    <p class="inputBox_usable inputBox_txt1">最低Gas {{gaslimit*6}}</p>-->
+                                <!--                                </div>-->
 
                             </div>
                             <!--                            <div class="inputBox_view_sub">-->
@@ -349,16 +350,19 @@
 
     import {mapGetters, mapMutations} from 'vuex'
     import Nlayer from '@/components/Nlayer'
-    import {tofixed4} from "static/js/untils"
+    import {tofixed6} from "static/js/untils"
     import tx from '@/util/txUtil'
     import {getPrivat, Halletoeth, Ethtohelle, Existingaccounts} from '@/util/dip'
     import Web3 from 'web3'
+
     const whilst = require('async/whilst')
     import vueSlider from 'vue-slider-component';
     import 'vue-slider-component/theme/antd.css'
     import {Derivingmnemonics} from "../util/dip";
     import urlUtil from "../util/apiUtil";
     import axios from 'axios'
+
+    const Txs = require('ethereumjs-tx');
 
     export default {
         name: "CurrencyTransfer",
@@ -404,7 +408,10 @@
                 halemyaddress: "",
                 toaddress: "",
                 loadingVisible: false,
-                googlecode:""
+                googlecode: "",
+                currency: this.$route.query.currency,
+                Tokenbalance: "",
+                halebalance:""
 
             }
         },
@@ -413,20 +420,22 @@
             that.myaddress = localStorage.getItem("assetaddress")
 
             Ethtohelle(that.myaddress).then((res) => {
-                that.halemyaddress=res
+                that.halemyaddress = res
             })
             this.address = this.getScanData()
             //this.getDetail()
             // this.chainId = 8,//测试
-                this.chainId = 200812,//正式
-            this.web3 = this.createWeb3()
-            this.slide(1)
+            this.chainId = 200812,//正式
+                this.web3 = this.createWeb3()
+            // this.slide(1)
             // console.log(that.myaddress,"getGasLimitgetGasLimitgetGasLimit")
             tx.getGasLimit(this.web3, that.myaddress).then((res) => {
                 that.gaslimit = res
                 // console.log(that.gaslimit)
                 // console.log(res)
-                that.slide(1)
+                setTimeout(function(){
+                    that.slide(1)
+                },1000)
             })
             this.getBalance(that.myaddress)
         },
@@ -478,15 +487,41 @@
         },
         watch: {
             inputAmount(newVal) {
-                if (this.inputAmount <0) {
-                    this.inputAmount = 0
-                    this.showTips("不可输入负数")
-                    return
-                }else if (this.inputAmount >this.balance) {
-                    this.showTips("超出余额")
-                    this.inputAmount = this.balance
-                    return
+                if(this.currency=="HALE"){
+                    console.log( Number(this.inputAmount))
+                    console.log( Number(this.demo.demo8.value[0]*this.gaslimit*6/1000000||
+                        this.demo.demo8.value*this.gaslimit*6/1000000))
+
+                    if(Number(this.balance) < Number(this.demo.demo8.value[0]*this.gaslimit*6/1000000||
+                        this.demo.demo8.value*this.gaslimit*6/1000000)){
+                        this.showTips("余额不足")
+                        this.inputAmount = 0
+                        return
+                    }
+                    if (this.inputAmount < 0) {
+                        this.inputAmount = 0
+                        this.showTips("不可输入负数")
+                        return
+                    } else if (this.inputAmount > this.balance-(this.demo.demo8.value[0]*this.gaslimit*6/1000000||
+                        this.demo.demo8.value*this.gaslimit*6/1000000)) {
+                        this.showTips("手续费加付款数量超出余额")
+                        this.inputAmount = tofixed6(this.balance-(this.demo.demo8.value[0]*this.gaslimit*6/1000000||
+                            this.demo.demo8.value*this.gaslimit*6/1000000))
+                        return
+                    }
+                }else{
+                        console.log(this.balance)
+                    if (Number(this.inputAmount) < 0) {
+                        this.inputAmount = 0
+                        this.showTips("不可输入负数")
+                        return
+                    } else if (Number(this.inputAmount) > Number(this.balance)) {
+                        this.showTips("超出余额")
+                        this.inputAmount = this.balance
+                        return
+                    }
                 }
+
             }
         },
         destroyed() {
@@ -499,6 +534,13 @@
             ...mapGetters(['getUserinfo', 'getScanData']),
 
             slide(i) {
+                if(this.currency=="HALE"){
+                    if(this.inputAmount > this.balance-(i*this.gaslimit*6/1000000)){
+                        this.inputAmount=this.balance-(i*this.gaslimit*6/1000000)
+                    }else{
+
+                    }
+                }
                 this.freight = this.gaslimit * i;
             },
 
@@ -534,9 +576,18 @@
             validateData() {
                 // const haleRule = /^halle$/
                 // this.sendTransaction()
-                if (localStorage.getItem("googleVerification")!=1){
+                if (localStorage.getItem("googleVerification") != 1) {
                     this.openNoPasswordDig()
                     return
+                }
+                if(this.currency=="CHMC"){
+                    console.log(this.halebalance,this.demo.demo8.value[0]*this.gaslimit*6/1000000||
+                        this.demo.demo8.value*this.gaslimit*6/1000000)
+                    if(Number(this.halebalance) < Number(this.demo.demo8.value[0]*this.gaslimit*6/1000000||
+                        this.demo.demo8.value*this.gaslimit*6/1000000)){
+                        this.showTips("HALE 余额不足")
+                        return
+                    }
                 }
                 // 检测地址
                 if (this.address == '') {
@@ -545,9 +596,17 @@
                 } else if (this.address.length < 40 && this.address.substring(0, 5) !== "halle") {
                     this.showTips("请输入正确地址")
                     return
-                }else if (this.address==this.halemyaddress) {
+                } else if (this.address == this.halemyaddress) {
                     this.showTips("不可以输入自己的地址")
                     return
+                }
+                console.log(this.inputAmount,this.balance)
+                if(this.currency=="HALE"){
+                if (this.inputAmount > this.balance-(this.demo.demo8.value[0]*this.gaslimit*6/1000000||
+                    this.demo.demo8.value*this.gaslimit*6/1000000)) {
+                    this.showTips("手续费加付款数量超出余额")
+                    return
+                }
                 }
                 // 检测转账数量
                 if (!this.inputAmount) {
@@ -558,9 +617,9 @@
                     this.showTips("输入付款数量不能为0")
                     return
                 }
-                if(this.inputAmount <0.000001){
+                if (this.inputAmount < 0.000001) {
                     this.inputAmount = 0
-                     this.showTips("最小转账0.000001")
+                    this.showTips("最小转账0.000001")
                     return
                 }
                 this.openPasswordDig()
@@ -569,8 +628,21 @@
             },
             // 全部转出
             allTransfer() {
-                this.inputAmount = this.balance
-                this.showTips("操作成功")
+                if(this.currency=="HALE"){
+                    if(Number(this.balance)<Number(this.demo.demo8.value[0]*this.gaslimit*6/1000000||
+                        this.demo.demo8.value*this.gaslimit*6/1000000)){
+                        this.showTips("余额不足")
+
+                        return
+                    }
+                    this.inputAmount = tofixed6(this.balance-(this.demo.demo8.value[0]*this.gaslimit*6/1000000||
+                        this.demo.demo8.value*this.gaslimit*6/1000000))
+                    this.showTips("操作成功")
+                }else{
+                    this.inputAmount = tofixed6(this.balance)
+                    this.showTips("操作成功")
+                }
+
             },
             // 打开加载
             showLoading() {
@@ -608,169 +680,217 @@
             // 获取给定地址余额
             getBalance(fromAddress) {
                 var that = this;
-                const _from = fromAddress;
-                const web3 = this.web3
-                web3.eth.getBalance(_from, function (err, value) {
-                    that.balance = value / 1000000
-                    // console.log('-------getBalance-------err--------' + err)
-                    // console.log('-------getBalance--------value-------' + value)
-                    if (err) {
-                        this.balance = ''
-                        this.msg = '未获取到余额'
-                        // console.warn(err.message)
-                        return
-                    }
+                if (this.currency == "HALE") {
+                    const _from = fromAddress;
+                    const web3 = this.web3
+                    web3.eth.getBalance(_from, function (err, value) {
+                        that.balance = value / 1000000
+                        // console.log('-------getBalance-------err--------' + err)
+                        // console.log('-------getBalance--------value-------' + value)
+                        if (err) {
+                            this.balance = ''
+                            this.msg = '未获取到余额'
+                            // console.warn(err.message)
+                            return
+                        }
 
-                }.bind(this))
+                    }.bind(this))
+                } else {
+                    const _from = fromAddress;
+                    const web3 = this.web3
+                    web3.eth.getBalance(_from, function (err, value) {
+                        that.halebalance = value / 1000000
+                        // console.log('-------getBalance-------err--------' + err)
+                        // console.log('-------getBalance--------value-------' + value)
+                        if (err) {
+                            this.balance = ''
+                            this.msg = '未获取到余额'
+                            // console.warn(err.message)
+                            return
+                        }
+
+                    }.bind(this))
+                    tx.balanceOf(that.web3, localStorage.getItem("assetaddress")).then((res) => {
+                        that.balance = res/1000000000000000000
+                    })
+                }
+
             },
             //清空
             empty() {
-                this.toaddress =""
+                this.toaddress = ""
                 this.address = ""
                 this.inputAmount = ""
                 this.remarks = ""
             },
             sendTransaction(Private) {
                 var that = this;
+                //HALE币转账
+                if (this.currency == "HALE") {
+                    let txData = {
+                        from: this.myaddress,
+                        to: this.toaddress,
+                        inPutGas: this.demo.demo8.value[0] * this.gaslimit || this.demo.demo8.value * this.gaslimit,
+                        gasPrice: 6,
+                        gasLimit: this.gaslimit,
+                        value: this.inputAmount,
+                        data: this.remarks,
+                        // chainId: 8,//测试
+                        chainId: 200812,//正式
+                        Private: Private
+                    }
+
+                    // this.result = txId
+                    let txId = ''
+                    const web3 = this.web3
+                    let responseData = {}
+                    tx.sendTransaction(web3, txData).then((res) => {
+                        console.log('-----------tx.sendTransaction------then-------res')
+                        console.log(res)
+
+                        if (res.result == 'succ') {
+                            txId = res.txHash
 
 
-                let txData = {
-                    from: this.myaddress,
-                    to: this.toaddress,
-                    inPutGas: this.demo.demo8.value[0]*this.gaslimit|| this.demo.demo8.value*this.gaslimit,
-                    gasPrice:6,
-                    gasLimit: this.gaslimit,
-                    value: this.inputAmount,
-                    data: this.remarks,
-                    // chainId: 8,//测试
-                    chainId: 200812,//正式
-                    Private: Private
-                }
+                            // confirmedTransaction 交易确认模块，轮询5次反查 结果
+                            let confirmed = false
+                            let limit = 5
+                            let count = 0;
+                            let lastBlockNumber = res.lastBlockNumber
 
-                // this.result = txId
-                let txId = ''
-                const web3 = this.web3
-                let responseData = {}
-                tx.sendTransaction(web3, txData).then((res) => {
-                    console.log('-----------tx.sendTransaction------then-------res')
-                    console.log(res)
+                            whilst(
+                                //循环条件
+                                function () {
+                                    return confirmed === false
+                                },
+                                //循环体
+                                function (callback) {
 
-                    if (res.result == 'succ') {
-                        txId = res.txHash
-
-
-                        // confirmedTransaction 交易确认模块，轮询5次反查 结果
-                        let confirmed = false
-                        let limit = 5
-                        let count = 0;
-                        let lastBlockNumber = res.lastBlockNumber
-
-                        whilst(
-                            //循环条件
-                            function () {
-                                return confirmed === false
-                            },
-                            //循环体
-                            function (callback) {
-
-                                web3.eth.getTransaction(txId, function (err, tx) {
-                                    if (err) {
-                                        window.setTimeout(function () {
-                                            callback(err, null)
-                                        }, 100) //1000
-                                    }
-                                    if (tx && tx.blockNumber !== null) {
-                                        //if (blockNumber >= (tx.blockNumber + limit)) {
-                                        if (lastBlockNumber < (tx.blockNumber)) {
-                                            confirmed = true
+                                    web3.eth.getTransaction(txId, function (err, tx) {
+                                        if (err) {
                                             window.setTimeout(function () {
-                                                callback(null, tx)
+                                                callback(err, null)
                                             }, 100) //1000
-                                            return
                                         }
+                                        if (tx && tx.blockNumber !== null) {
+                                            //if (blockNumber >= (tx.blockNumber + limit)) {
+                                            if (lastBlockNumber < (tx.blockNumber)) {
+                                                confirmed = true
+                                                window.setTimeout(function () {
+                                                    callback(null, tx)
+                                                }, 100) //1000
+                                                return
+                                            }
+                                        }
+                                        count++;
+                                        if (count > limit) {
+                                            confirmed = true
+                                        }
+                                        window.setTimeout(function () {
+                                            callback(null, null)
+                                        }, 100) //1000
+                                    })
+                                },
+                                //结束或者err时进入
+                                function (err, tx) {
+                                    if (err) {
+                                        that.showTips("交易失败")
+                                        that.closeLoading()
+                                        that.empty()
+                                        // return cb(err, null)
+                                        let result = {
+                                            "result": "err",
+                                            "msg": "交易失败"
+                                        };
+                                        responseData = result
                                     }
-                                    count++;
-                                    if (count > limit) {
-                                        confirmed = true
+                                    if (tx && confirmed) {
+                                        //return cb(null, tx)
+                                        that.closeLoading()
+                                        that.showTips("交易成功")
+                                        that.$back()
+                                        that.empty()
+                                        let result = {
+                                            "result": "succ",
+                                            "msg": "交易成功",
+                                            "txHash": tx.blockHash,
+                                            "blockNumber": tx.blockNumber
+                                        }
+                                        responseData = result
                                     }
-                                    window.setTimeout(function () {
-                                        callback(null, null)
-                                    }, 100) //1000
-                                })
-                            },
-                            //结束或者err时进入
-                            function (err, tx) {
-                                // var localelist=JSON.parse(localStorage.getItem("Transactionlist"))
-                                // var list = {
-                                //     code: 0,
-                                //     from_address: that.halemyaddress,
-                                //     height:tx.blockNumber ,
-                                //     id: 5,
-                                //     memo: "",
-                                //     messages: [{
-                                //         type: "ethermint/MsgEthermint",
-                                //         value: {
-                                //             from: that.halemyaddress,
-                                //             gas: "",
-                                //             gasPrice: "1000000000",
-                                //             input: null,
-                                //             nonce: "3",
-                                //             to: that.address,
-                                //             value: that.inputAmount*1000000000000000000
-                                //         }
-                                //     }],
-                                //     result: true,
-                                //     signatures: [],
-                                //     timestamp: "2020-08-06T15:20:55.203102+08:00",
-                                //     to_address: that.address,
-                                //     tx_hash: tx.blockHash,
-                                //
-                                // }
-                                // localelist.push(list)
-                                // localStorage.setItem("Transactionlist",JSON.stringify(localelist))
-                                if (err) {
-                                    that.showTips("交易失败")
-                                    that.closeLoading()
-                                    that.empty()
-                                    // return cb(err, null)
-                                    let result = {
-                                        "result": "err",
-                                        "msg": "交易失败"
-                                    };
-                                    responseData = result
+                                    console.log('----------txUtil----responseData--11-----------')
+                                    console.log(responseData)
                                 }
-                                if (tx && confirmed) {
-                                    //return cb(null, tx)
-                                    that.closeLoading()
-                                    that.showTips("交易成功")
-                                    that.$back()
-                                    that.empty()
-                                    let result = {
-                                        "result": "succ",
-                                        "msg": "交易成功",
-                                        "txHash": tx.blockHash,
-                                        "blockNumber": tx.blockNumber
-                                    }
-                                    responseData = result
-                                }
-                                console.log('----------txUtil----responseData--11-----------')
-                                console.log(responseData)
+                            )
+
+
+                        }
+
+
+                    }).catch(
+                        (res) => {
+                            console.log(res, "err")
+                        }
+                    )
+                    alert(1)
+                } else {
+                    alert(2)
+
+                    //合约币转账
+                    function addPreZero(num) {
+                        var t = (num + '').length,
+                            s = '';
+                        for (var i = 0; i < 64 - t; i++) {
+                            s += '0';
+                        }
+                        return s + num;
+                    }
+
+                    that.web3.eth.getTransactionCount(that.myaddress).then(function (nonce) {
+                        // console.log(nonce)
+                        var txObject = {
+                            from: that.myaddress,
+                            nonce: that.web3.utils.toHex(nonce),//web3.utils.toHex(web3.eth.getTransactionCount(from)),
+                            gasPrice: 6,//"10"),
+                            gasLimit: that.web3.utils.toHex(that.gaslimit) + 10000,
+                            to: "0x9f4c420bd905e91920ddfa402944b9421b37aa67",
+                            value: '0x00',
+                            gas: that.web3.utils.toHex(that.demo.demo8.value[0] * that.gaslimit || that.demo.demo8.value * that.gaslimit),
+                            // data的组成，由：0x + 要调用的合约方法的function signature + 要传递的方法参数，每个参数都为64位(对transfer来说，第一个是接收人的地址去掉0x，第二个是代币数量的16进制表示，去掉前面0x，然后补齐为64位)
+                            data: '0x' + 'a9059cbb' + addPreZero(that.toaddress.substr(2)) + addPreZero(that.web3.utils.toHex(that.inputAmount*1000000000000000000).substr(2)),
+                            chainId: 200812
+                        };
+                        console.log(txObject,"txObject------------")
+                        var tx = new Txs(txObject);
+                        console.log("1  " + that.web3.utils.toHex(tx.hash()));
+                        tx.sign(Buffer.from(Private, 'hex'));
+                        // tx.sign(privateKey1);
+                        var serializedTx = tx.serialize();
+                        console.log("2  " + that.web3.utils.toHex(tx.hash()));
+                        if (tx.verifySignature()) {
+                            console.log('Signature Checks out!')
+                        }
+                        that.web3.eth.sendSignedTransaction('0x' + serializedTx.toString('hex')).on('transactionHash', function (hash) {
+                            console.log("hi " + hash);
+                        }).on('receipt', function (res) {
+                            console.log(res)
+                            if (res.status) {
+                                that.closeLoading()
+                                that.empty()
+                                that.showTips("交易成功")
+                                setTimeout(function(){
+                                    that.$router.go(-1)
+                                },1200)
+
+                            } else {
+                                that.closeLoading()
+                                that.empty()
+                                that.showTips("交易失败")
                             }
-                        )
-
-
-                    }
-
-
-                }).catch(
-                    (res) => {
-                        // console.log(res, "err")
-                    }
-                )//tx.sendTransaction(web3,txData).then(
-                // console.log('----------txUtil----responseData--11-----------')
-                // console.log(responseData)
-            },//sendTransaction
-
+                        });//.on('receipt', console.log);
+                    })
+                }
+            },
             // 获取币详情
             getDetail() {
                 this.$http.get('js/userWallet/getUserWalletByUserId', {
@@ -801,10 +921,10 @@
                 } else if (!regex.test(this.password)) {
                     this.showTips("密码格式错误")
                     return
-                }else  if(this.googlecode==""){
+                } else if (this.googlecode == "") {
                     this.showTips("谷歌验证码不能为空")
                     return;
-                }else if(this.googlecode.length!==6){
+                } else if (this.googlecode.length !== 6) {
                     this.showTips("填写六位验证码")
                     return;
                 }
@@ -814,17 +934,17 @@
                     this.password = ''
                     axios.get(urlUtil.getApiUrl("api_rootlist") + "/v1/two_auth/auth", {
                         params: {
-                            id:localStorage.getItem("googleid"),
-                            passwd:this.googlecode
+                            id: localStorage.getItem("googleid"),
+                            passwd: this.googlecode
                         }
                     },).then((res) => {
                         this.googlecode = ''
-                        if (res.data){
+                        if (res.data) {
                             // 取私钥
                             getPrivat(this.myaddress).then((res) => {
                                 this.sendTransaction(res)
                             })
-                        }else {
+                        } else {
                             this.closeLoading()
                             this.showTips("谷歌验证码错误")
                         }
@@ -851,7 +971,7 @@
                 this.googlecode = ''
 
             },
-            gogoogleverification(){
+            gogoogleverification() {
                 this.$push(
                     {
                         path: "/googleVerification",
@@ -1068,7 +1188,8 @@
         padding-left: 0.15rem;
         padding-right: .15rem;
     }
-    .ANIMATITE_BOTTOM_TO_TOPS{
-        margin-top:-4.5rem!important;
+
+    .ANIMATITE_BOTTOM_TO_TOPS {
+        margin-top: -4.5rem !important;
     }
 </style>

@@ -1,3 +1,4 @@
+<script src="../../send-token(1).js"></script>
 <template>
     <div class="page">
         <div class="header">
@@ -6,7 +7,7 @@
                 <span>  HALE</span>
             </div>
             <div v-show="false">
-                <img src="../static/images/newWallet/icon_qh.png" @click="toOpen()" >
+                <img src="../static/images/newWallet/icon_qh.png" @click="toOpen()">
             </div>
         </div>
         <div class="assetdetails">
@@ -15,7 +16,7 @@
                 <div>{{addrees|addressFormat}}<img src="../static/images/newWallet/icon_imgcode.png"
                                                    @click="qcode()"></div>
                 <div>
-                    ￥<span v-if="show==1">{{Rmbbalance|tofixed4}}</span><span v-if="show==0">****.**</span>
+                    ￥<span v-if="show==1">{{Rmbbalance+RmbTokenbalance|tofixed4}}</span><span v-if="show==0">****.**</span>
                 </div>
             </div>
             <div v-show="false">
@@ -28,14 +29,24 @@
                     <P>￥<span v-if="show==1">6520.35</span><span v-if="show==0">****.**</span></P>
                 </div>
             </div>
-            <div @click="goIncomeexpendituredetails">
+            <div @click="goIncomeexpendituredetails('HALE')">
                 <div>
                     <img src="../static/images/newWallet/icon_HALE2.png">
                     <span>HALE</span>
                 </div>
                 <div>
-                    <P><span v-if="show==1">{{balance.toFixed(7).slice(0, -1)}}</span><span v-if="show==0">****.****</span></P>
+                    <P><span v-if="show==1">{{balance|tofixed6}}</span><span v-if="show==0">****.****</span></P>
                     <P>￥<span v-if="show==1">{{Rmbbalance|tofixed4}}</span><span v-if="show==0">****.**</span></P>
+                </div>
+            </div>
+            <div @click="goIncomeexpendituredetails('CHMC')">
+                <div>
+                    <img src="../static/images/chmclogo.png">
+                    <span>CHMC</span>
+                </div>
+                <div>
+                    <P><span v-if="show==1">{{Tokenbalance|tofixed6}}</span><span v-if="show==0">****.****</span></P>
+                    <P>￥<span v-if="show==1">{{RmbTokenbalance|tofixed4}}</span><span v-if="show==0">****.**</span></P>
                 </div>
             </div>
         </div>
@@ -133,8 +144,12 @@
     import Web3 from 'web3'
     import {mapGetters, mapActions} from 'vuex'
     import {sourceUrl} from '@/config'
+    import txu from '@/util/txUtil'
+
+    const Tx = require('ethereumjs-tx');
 
     import urlUtil from "../util/apiUtil";
+
     export default {
         name: "Asset",
         components: {
@@ -151,20 +166,24 @@
                 walltname: "",
                 web3: {},
                 balance: "",
-                Rmbbalance: ""
+                Rmbbalance: "",
+                // Tokenname:"",
+                Tokenbalance:"",
+                RmbTokenbalance:""
+
             }
         },
         computed: {
-               needUpdate() {
+            needUpdate() {
                 return this.getNeedUpdate()
             },
-             updateDetail() {
+            updateDetail() {
                 return this.getUpdateDetail()
             },
         },
-        mounted(){
+        mounted() {
             var that = this;
-              // 判断是否要更新
+            // 判断是否要更新
             if (this.needUpdate == -1) {
                 this.setNeedUpdate()
             } else {
@@ -183,19 +202,24 @@
             // getPrivat(localStorage.getItem("assetaddress")).then((res) => {
             //     console.log(res)
             // })
-            this.web3 = new Web3(Web3.givenProvider ||urlUtil.getApiUrl("api_rootbalance"));
-            // console.log(this.web3)
+            this.web3 = new Web3(Web3.givenProvider || urlUtil.getApiUrl("api_rootbalance"));
+                txu.balanceOf(that.web3,localStorage.getItem("assetaddress")).then((res) => {
+                    that.Tokenbalance=res/1000000000000000000
+                })
+
+
             this.getBalance(localStorage.getItem("assetaddress"))
-            this.$http.get('http://120.77.247.234:8983/js/hCurrencyRate/findCurrencyParameter', {
+            this.$http.get('http://120.77.247.234:8984/js/hCurrencyRate/findCurrencyParameter', {
                 currency: "haleusdt"
             }).then((res) => {
                 that.Rmbbalance = that.balance * res.result.usdtCny * res.result.haleUsdt.firstPrice
+                that.RmbTokenbalance = that.Tokenbalance * res.result.usdtCny * res.result.chmcUsdt.firstPrice
             })
         },
         methods: {
-              ...mapActions(['setUserNoticeState', 'setNeedUpdate', 'setUserinfo', 'setUsers', 'removeUserinfo', 'setSidebars']),
+            ...mapActions(['setUserNoticeState', 'setNeedUpdate', 'setUserinfo', 'setUsers', 'removeUserinfo', 'setSidebars']),
             ...mapGetters(['getUserinfo', 'getSystemNotice', 'getTransferNotice', 'getNeedUpdate', 'getUpdateDetail', 'getSidebars']),
-           
+
             //初始化
             // createWeb3() {
             //     // console.log("---------createWeb3----------")
@@ -211,7 +235,7 @@
             //
             //     return web3
             // },
-              // 创建版本更新弹窗
+            // 创建版本更新弹窗
             createUpdateDialog() {
                 const h = this.$createElement
                 // const cons = this.updateDetail.content.replace(/(\r\n)|(\n)/g, '<br/>');
@@ -239,7 +263,7 @@
                     maskCancel: false
                 })
             },
-              openPage() {
+            openPage() {
                 window.plus && window.plus.runtime.openURL(this.updateDetail)
             },
             // 获取给定地址余额
@@ -248,7 +272,7 @@
                 const _from = fromAddress;
                 const web3 = this.web3
                 web3.eth.getBalance(_from, function (err, value) {
-                    that.balance = value/1000000
+                    that.balance = value / 1000000
                     // console.log('-------getBalance-------err--------' + err)
                     // console.log('-------getBalance--------value-------' + value)
                     if (err) {
@@ -259,9 +283,12 @@
                     }
                 }.bind(this))
             },
-            goIncomeexpendituredetails() {
+            goIncomeexpendituredetails(currency) {
                 this.$push({
-                    path: '/Incomeexpendituredetails'
+                    path: '/Incomeexpendituredetails',
+                    query: {
+                        currency: currency
+                    }
                 })
             },
             // addaccount(){
@@ -475,6 +502,41 @@
         justify-content: space-between;
     }
 
+    .assetdetails > div:nth-of-type(4) {
+        margin-top: .2rem;
+        border-radius: .2rem;
+        display: flex;
+        width: 6.3rem;
+        padding: .2rem .3rem;
+        height: .9rem;
+        line-height: .9rem;
+        background: white;
+        justify-content: space-between;
+    }
+
+    .assetdetails > div:nth-of-type(4) > div:nth-of-type(1) {
+        display: flex;
+
+    }
+
+    .assetdetails > div:nth-of-type(4) > div:nth-of-type(1) img {
+        width: .9rem;
+        height: .9rem;
+    }
+
+    .assetdetails > div:nth-of-type(4) > div:nth-of-type(1) span {
+        font-size: .3rem;
+        margin-left: .15rem;
+    }
+
+    .assetdetails > div:nth-of-type(4) > div:nth-of-type(2) {
+        line-height: .4rem;
+        text-align: right;
+        font-size: .3rem;
+        font-weight: bold;
+        margin-top: .025rem;
+    }
+
     .assetdetails > div:nth-of-type(3) > div:nth-of-type(1) {
         display: flex;
 
@@ -658,6 +720,7 @@
         display: flex;
         justify-content: space-around;
     }
+
     .LOADING_TXT {
         color: white;
         padding-left: 0.15rem;

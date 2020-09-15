@@ -66,10 +66,10 @@ export default {
             axios.get(urlUtil.getApiUrl("api_rootlist")+"/v1/app_version/get", {
             },).then((res) => {
                 console.log( res.data.version)
-               if("1"!=Number(res.data.version)){
+               if("2"!=Number(res.data.version)){
                    console.log( res.data.downloadurl)
                 commit(types.SET_NEEDUPDATE, true)
-                commit(types.SET_UPDATEDETAIL, res.data.downloadurl) 
+                commit(types.SET_UPDATEDETAIL, res.data.downloadurl)
                }else{
                 commit(types.SET_NEEDUPDATE, false)
                }

@@ -3,9 +3,13 @@
  *  封装应用中使用到所有的api的URL
  */
 
-var api_rootbalance = "http://192.168.3.100:8545";//查询余额发交易test
+// var api_rootbalance = "http://192.168.3.100:8545";//查询余额发交易test
 // var api_rootbalance = "http://fullnode.hallechain.cn:8545";//查询余额发交易
-var api_rootlist = "http://testwallet.hallechain.cn";//查询列表
+var api_rootbalance = "http://192.168.3.200:7545";//查询余额发交易
+
+// var api_rootlist = "http://testwallet.hallechain.cn";//测试正式查询列表
+// var api_rootlist = "http://192.168.3.100:5000";//本地查询列表
+var api_rootlist = "http://wallet.hallechain.cn";//正式查询列表
 var api_rootimg = 'http://halleshoptestserver.hallechain.cn';//测试服线上调试
 var api_root=""
 //内置图片资源路径

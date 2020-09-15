@@ -13,7 +13,7 @@
 <!--                    @click="downloadPic('share')"-->
 <!--            ></div>-->
 <!--        </div>-->
-        <div class="wrapper">
+        <div class="wrapper" v-if="currency=='HALE'">
             <div class="content">
                 <div class="main">
                     <div class="detail_top tcenter"
@@ -66,7 +66,59 @@
                 </div>
             </div>
         </div>
+        <div class="wrapper" v-if="currency=='CHMC'">
+            <div class="content">
+                <div class="main">
+                    <div class="detail_top tcenter"
+                         :class="[detail.code == 0   ? 'state1' : 'state2']"
+                    >
+                        <div class="detail_icon mauto radius-round"></div>
+                        <p v-if="myaddress!==detail.from_address&&detail.messages[0].type=='cosmos-sdk/MsgSend'" class="detail_txt1">{{(detail.messages[0].value.amount[0].amount)/1000000000000000000||0|tofixed6}} CHMC</p>
+                        <p v-if="myaddress!==detail.from_address&&detail.messages[0].type=='ethermint/MsgEthermint'" class="detail_txt1">{{(detail.messages[0].value.value)/1000000000000000000||0|tofixed6}} CHMC</p>
+                        <p v-if="myaddress==detail.from_address&&detail.messages[0].type=='ethermint/MsgEthermint'" class="detail_txt1">{{(detail.messages[0].value.value)/1000000000000000000||0|tofixed6}} CHMC</p>
 
+                        <p class="detail_txt2" v-if="myaddress==detail.from_address"><span v-if="detail.code==0">付款成功</span><span v-if="detail.code!==0">付款失败</span></p>
+                        <p class="detail_txt2" v-if="myaddress!==detail.from_address"><span v-if="detail.code==0">收款成功</span><span v-if="detail.code!==0">收款失败</span></p>
+
+                    </div>
+                    <div class="he">
+
+                    </div>
+                    <div class="detail_list">
+                        <div class="detail_item">
+                            <p class="detail_item_txt1">{{$t('currencyDetail.currencyDetail_sendAddress')}}</p>
+                            <p class="detail_item_txt2">{{detail.from_address || '------'}}</p>
+                        </div>
+                        <div class="detail_item">
+                            <p class="detail_item_txt1">{{$t('currencyDetail.currencyDetail_receiveAddress')}}</p>
+                            <p class="detail_item_txt2">{{detail.to_address|| '------'}}</p>
+                        </div>
+                        <div class="detail_item">
+                            <p class="detail_item_txt1">{{$t('currencyDetail.currencyDetail_Transaction_time')}}</p>
+                            <p class="detail_item_txt2">{{(detail.timestamp.substring(0,19).replace("T"," ")|| '------')}}</p>
+                        </div>
+                        <div class="detail_item">
+                            <p class="detail_item_txt1">{{$t('currencyDetail.currencyDetail_Transaction_ID')}}</p>
+                            <p class="detail_item_txt2">{{detail.tx_hash || '------'}}</p>
+                        </div>
+                        <div class="detail_item">
+                            <p class="de.detail_item_txt2tail_item_txt1">{{$t('currencyDetail.currencyDetail_block')}}</p>
+                            <p class="detail_item_txt2">{{detail.height  || '------'}}</p>
+                        </div>
+                        <div class="detail_item">
+                            <p class="detail_item_txt1">{{$t('currencyDetail.currencyDetail_fee')}}</p>
+                            <p class="detail_item_txt2">{{detail.messages[0].value.gas*detail.messages[0].value.gasPrice/1000000 || '------'}} HALE</p>
+                        </div>
+
+                        <!-- <div class="detail_item">
+                            <p class="detail_item_txt1">备注</p>
+                            <p class="detail_item_txt2">{{detail.memo || '无'}}</p>
+                        </div> -->
+
+                    </div>
+                </div>
+            </div>
+        </div>
         <nlayer
                 :maskCancel="false"
                 maskBackgroundColor="rgba(0,0,0,0)"
@@ -140,7 +192,8 @@
                 dtask: '',
                 FILENAME: '',
                 shareWX: null,
-                myaddress:""
+                myaddress:"",
+                currency:this.$route.query.currency,
 
             }
         },
@@ -252,7 +305,7 @@
         methods: {
             ...mapActions(['setUserNoticeState']),
             ...mapGetters(['getUserinfo']),
-             
+
             // // 下载分享图片
             // downloadPic(flag){
             //     console.log(this.detail)

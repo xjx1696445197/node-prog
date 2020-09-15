@@ -16,7 +16,7 @@
                 <div>
                     <div>
                             <div class="clola">当前余额（HALE）</div>
-                            <div>{{balance.toFixed(7).slice(0, -1)}}</div>
+                            <div>{{balance|tofixed6}}</div>
                     </div>
 <!--                    <div>-->
 <!--                        <div class="clola">已委托总数（HALE）</div>-->
@@ -28,7 +28,6 @@
                 <p><span>*</span>
                     请确认钱包信息是否有误</p>
             </div>
-
             <div class="btns LONG_WALLET_BTN BUTTON_BGCOLOR_UN mauto tcenter"
                  @click="addressd"
             >确认导入

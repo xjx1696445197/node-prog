@@ -25,7 +25,7 @@
                                                 @click="initCopyer(addrees)"
                                                 src="../static/images/newWallet/detail_copy_iconh.png"
                                                 data-initcopyer="true"></p>
-                                        <p class="sidebar_txt3"><span>￥{{Rmbbalance|tofixed4}}</span><img @click="showmb(index)"
+                                        <p class="sidebar_txt3"><span>￥{{Rmbbalance+RmbTokenbalance|tofixed4}}</span><img @click="showmb(index)"
                                                                                           src="../static/images/newWallet/sgd.png">
                                         </p>
                                         <div class="sidebar_active_icon"></div>
@@ -207,6 +207,7 @@
     import ClipboardJS from 'clipboard'
     import Web3 from 'web3'
     import urlUtil from "../util/apiUtil";
+    import txu from '@/util/txUtil'
 
     export default {
         name: "WalletList",
@@ -232,7 +233,9 @@
                 balance:"",
                 Rmbbalance:0,
                 web3: {},
-                addrees:""
+                addrees:"",
+                Tokenbalance:"",
+                RmbTokenbalance:""
             }
         },
         mounted() {
@@ -243,10 +246,15 @@
             Ethtohelle(localStorage.getItem("assetaddress")).then((res) => {
                 that.addrees = res;
             })
-            this.$http.get('http://120.77.247.234:8983/js/hCurrencyRate/findCurrencyParameter', {
+            txu.balanceOf(that.web3,localStorage.getItem("assetaddress")).then((res) => {
+                that.Tokenbalance=res/1000000000000000000
+            })
+            this.$http.get('http://120.77.247.234:8984/js/hCurrencyRate/findCurrencyParameter', {
                 currency:"haleusdt"
             }).then((res) => {
                 that.Rmbbalance=that.balance*res.result.usdtCny*res.result.haleUsdt.firstPrice
+                that.RmbTokenbalance = that.Tokenbalance * res.result.usdtCny * res.result.chmcUsdt.firstPrice
+
             })
         },
         computed: {},
