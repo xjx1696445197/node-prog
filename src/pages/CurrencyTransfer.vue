@@ -832,9 +832,9 @@
                             console.log(res, "err")
                         }
                     )
-                    alert(1)
+                    // alert(1)
                 } else {
-                    alert(2)
+                    // alert(2)
 
                     //合约币转账
                     function addPreZero(num) {
@@ -853,7 +853,9 @@
                             nonce: that.web3.utils.toHex(nonce),//web3.utils.toHex(web3.eth.getTransactionCount(from)),
                             gasPrice: 6,//"10"),
                             gasLimit: that.web3.utils.toHex(that.gaslimit) + 10000,
-                            to: "0x9f4c420bd905e91920ddfa402944b9421b37aa67",
+                            to: "0xfdd978c7edfda15e719508cc7ac34df37234c50d",
+                            // to: "0xd94e83cc54669b19a128b44942de97510470b946",
+                            // to: "0x9f4c420bd905e91920ddfa402944b9421b37aa67",
                             value: '0x00',
                             gas: that.web3.utils.toHex(that.demo.demo8.value[0] * that.gaslimit || that.demo.demo8.value * that.gaslimit),
                             // data的组成，由：0x + 要调用的合约方法的function signature + 要传递的方法参数，每个参数都为64位(对transfer来说，第一个是接收人的地址去掉0x，第二个是代币数量的16进制表示，去掉前面0x，然后补齐为64位)

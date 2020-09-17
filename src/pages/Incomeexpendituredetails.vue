@@ -267,11 +267,11 @@
                 web3: {},
                 balance: "",
                 Rmbbalance: 0,
-                list: "",
+                list: [],
                 myaddress: "",
                 pages: 10,
                 pagestore: true,
-                after: 0,
+                befer: 0,
                 currency:this.$route.query.currency,
                 Tokenbalance:"",
                 RmbTokenbalance:""
@@ -303,7 +303,7 @@
                         axios.get(urlUtil.getApiUrl("api_rootlist") + "/v1/txs_address", {
                             params: {
                                 limit: 30,
-                                after: that.after,
+                                before: that.befer,
                                 address: that.myaddress
                             }
                         },).then((res) => {
@@ -312,7 +312,7 @@
                             // for (var i = 0; i <=res.data.data.length;i++) {
                             //         bchearr.push(res.data.data.pop());
                             //     }
-                            //     that.after=bchearr[0].id
+                            //     that.befer=bchearr[0].id
                             //     if(that.pages>res.data.data.length){
                             //         that.pagestore=false
                             //         that.list = bchearr
@@ -323,7 +323,10 @@
 
                             //     console.log(that.list)
                             if (res.data.data !== null) {
-                                that.list = res.data.data.reverse()
+                                for (var i = 0; i <res.data.data.length;i++) {
+                                    that.list.push(res.data.data[i])
+                                    }
+                                    that.befer=that.list[that.list.length-1].id
                             } else {
 
                             }
@@ -335,9 +338,9 @@
                         axios.get(urlUtil.getApiUrl("api_rootlist") +"/v1/txs_address", {
                             params: {
                                 limit: 30,
-                                after: that.after,
+                                before  : that.befer,
                                 address: that.myaddress,
-                                contract_address:"halle1naxyyz7eqh53jgxalfqzj39eggdn02n8n604v3"
+                                contract_address:"halle1lhvh33ldlks4uuv4prx84s6d7derf3gdu6v9lp"
                             }
                         },).then((res) => {
                             //     console.log(res.data.data[4])
@@ -345,7 +348,7 @@
                             // for (var i = 0; i <=res.data.data.length;i++) {
                             //         bchearr.push(res.data.data.pop());
                             //     }
-                            //     that.after=bchearr[0].id
+                            //     that.befer=bchearr[0].id
                             //     if(that.pages>res.data.data.length){
                             //         that.pagestore=false
                             //         that.list = bchearr
@@ -356,7 +359,10 @@
 
                             //     console.log(that.list)
                             if (res.data.data !== null) {
-                                that.list = res.data.data.reverse()
+                                for (var i = 0; i <res.data.data.length;i++) {
+                                    that.list.push(res.data.data[i])
+                                }
+                                that.befer=that.list[that.list.length-1].id
                             } else {
 
                             }

@@ -4,8 +4,8 @@
  */
 
 // var api_rootbalance = "http://192.168.3.100:8545";//查询余额发交易test
-// var api_rootbalance = "http://fullnode.hallechain.cn:8545";//查询余额发交易
-var api_rootbalance = "http://192.168.3.200:7545";//查询余额发交易
+var api_rootbalance = "http://fullnode.hallechain.cn:8545";//查询余额发交易
+// var api_rootbalance = "http://192.168.3.200:7545";//查询余额发交易
 
 // var api_rootlist = "http://testwallet.hallechain.cn";//测试正式查询列表
 // var api_rootlist = "http://192.168.3.100:5000";//本地查询列表
