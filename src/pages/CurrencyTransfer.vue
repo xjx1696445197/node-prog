@@ -808,7 +808,9 @@
                                         //return cb(null, tx)
                                         that.closeLoading()
                                         that.showTips("交易成功")
-                                        that.$back()
+                                        setTimeout(function () {
+                                            that.$back()
+                                        },1200)
                                         that.empty()
                                         let result = {
                                             "result": "succ",
